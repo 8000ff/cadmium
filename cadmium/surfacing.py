@@ -1,6 +1,9 @@
 from typing import Tuple
 import numpy as np
-
+from more_itertools import repeat_each, windowed
+from itertools import cycle, repeat, chain
+from .data import LinearCut
+import networkx as nx
 
 def surfacing_routine(cutting_diameter: float, area: Tuple[Tuple[float, float, float], Tuple[float, float, float]], step_over: float, feed: float = 0, speed: float = 0):
     start, stop = area
@@ -30,17 +33,13 @@ def surfacing_routine(cutting_diameter: float, area: Tuple[Tuple[float, float, f
     total_y = (eay - eby)*y_dir
     assert total_y >= 0
 
-    from more_itertools import repeat_each, windowed
-    from itertools import cycle, repeat, chain
     xyz = list(zip(
         repeat_each(xs, 2),
         chain.from_iterable(windowed(cycle((eay, eby)), 2)),
         repeat(az)
     ))
 
-    from model.data import LinearCut
     cuts = [LinearCut(cut_start, cut_stop, feed, speed)
             for (cut_start, cut_stop) in windowed(xyz, 2)]
 
-    import networkx as nx
     return nx.path_graph(cuts)

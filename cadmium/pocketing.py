@@ -1,5 +1,10 @@
 from typing import Tuple
 import numpy as np
+from itertools import zip_longest, chain
+from more_itertools import windowed, flatten, intersperse
+from .data import LinearCut
+import networkx as nx
+
 
 # this is a simple/dumb pocketing routine
 # will clear out material using concentric squares starting from the middle
@@ -41,16 +46,12 @@ def rect_pocketing_routine(cutting_diameter: float, area: Tuple[Tuple[float, flo
                        int(n_full_slices)), stop[-1]]
 
     fill = corner_x[-1] if len(corner_x) < len(corner_y) else corner_y[-1]
-    from itertools import zip_longest
     corners = np.array(list(zip_longest(corner_x, corner_y, fillvalue=fill)))
     a = corners - center
     b, c, d = a*np.array((1, -1)), a*np.array((-1, -1)), a*np.array((-1, 1))
     a, b, c, d = a+center, b+center, c+center, d+center
 
     offset_polygons = np.array(list(zip(a, b, c, d)))
-    from more_itertools import windowed, flatten, intersperse
-    from itertools import chain
-    from model.data import LinearCut
 
     def polygon(z):
         cuts = offset_polygons
@@ -72,5 +73,4 @@ def rect_pocketing_routine(cutting_diameter: float, area: Tuple[Tuple[float, flo
     cuts = [b or LinearCut(a.stop, c.start, feed, speed) for a, b, c in cuts]
     cuts = list(cuts)
 
-    import networkx as nx
     return nx.path_graph([LinearCut((*center, start[-1]), (*center, start[-1] - step_down), feed, speed), *cuts])

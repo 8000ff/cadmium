@@ -1,5 +1,5 @@
-from model.data import Job,Operation,LinearCut,ArcCut
-from typing import List,Tuple,Union
+from .data import Job,Operation,LinearCut,ArcCut
+from typing import List,Union
 from pygcode import *
 import networkx as nx
 from more_itertools import *
