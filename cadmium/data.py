@@ -19,14 +19,16 @@ class Setup:
 
 @dataclass(unsafe_hash=True)
 class Tool:
-    diameter: float
     end_diameter: float
     edge_height: float = 0  # zero is for cylindrical tools
     edge_radius: float = np.Infinity  # accepts negative values
     radius: float = field(init=False)
+    shank_diameter: float = 0
 
     def __post_init__(self):
-        self.radius = self.diameter/2.
+        self.radius = self.end_diameter/2.
+        if self.shank_diameter == 0:
+            self.shank_diameter = self.end_diameter
 
 
 @dataclass(unsafe_hash=True)
@@ -70,6 +72,7 @@ class ArcCut():
     feed: float = 0  # mm/s # TODO look into the use of rev/mm
     speed: float = 0  # rpm
     spindle_cw: bool = True
+    turns : int = 1 # P param
 
     def gcode(self, include_start=False, include_stop=True, include_feed=False, include_speed=False, include_spindle_start=False):
         ax, ay, az = self.start
@@ -84,7 +87,7 @@ class ArcCut():
         if include_start:
             yield GCodeLinearMove(X=ax, Y=ay, Z=az)
         if include_stop:
-            yield (GCodeArcMoveCW if self.clockwise else GCodeArcMoveCCW)(X=bx, Y=by, Z=bz, I=ox, J=oy, K=oz)
+            yield (GCodeArcMoveCW if self.clockwise else GCodeArcMoveCCW)(X=bx, Y=by, Z=bz, I=ox, J=oy, K=oz,P=self.turns)
 
 
 @dataclass(unsafe_hash=True)

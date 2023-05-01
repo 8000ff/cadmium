@@ -18,17 +18,18 @@ def safe_height_solver(job : Job, machine: Machine, safe_height: float = 0,dwell
     yield GCodeCancelToolLengthOffset()
     for op in order_of_operations:
         cuts : List[Union[LinearCut,ArcCut]] = list(nx.dfs_preorder_nodes(op.cuts))
-        first_cut = cuts[0]
+        first_cut,*rest = cuts
         yield GCodeRapidMove(Z=safe_height)
         yield GCodeRapidMove(X=first_cut.start[0],Y=first_cut.start[1],Z=safe_height)
         yield from first_cut.gcode(True,True,True,True,True)
-        for (pre,now) in windowed(cuts,2):
-            pstop,nstart = np.array((pre.stop,now.start))
-            jump = np.linalg.norm(pstop-nstart) > eps
-            if jump:
-                yield GCodeLinearMove(Z=safe_height)
-                yield GCodeRapidMove(X=now.start[0],Y=now.start[1],Z=safe_height)
-            yield from now.gcode(jump,True,pre.feed != now.feed, pre.speed != now.speed,False)
+        if len(rest) > 0:
+            for (pre,now) in windowed(cuts,2):
+                pstop,nstart = np.array((pre.stop,now.start))
+                jump = np.linalg.norm(pstop-nstart) > eps
+                if jump:
+                    yield GCodeLinearMove(Z=safe_height)
+                    yield GCodeRapidMove(X=now.start[0],Y=now.start[1],Z=safe_height)
+                yield from now.gcode(jump,True,pre.feed != now.feed, pre.speed != now.speed,False)
         yield GCodeRapidMove(Z=safe_height)
         yield GCodeRapidMove(X=0,Y=0)
         yield GCodeStopSpindle()
