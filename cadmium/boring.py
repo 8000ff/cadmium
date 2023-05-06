@@ -1,19 +1,23 @@
+from itertools import chain, zip_longest
 from typing import Tuple
+
 import numpy as np
-from itertools import zip_longest, chain
-from more_itertools import windowed, flatten, intersperse
-from .data import LinearCut,ArcCut
-import networkx as nx
 
-X,Y,Z = np.identity(3)
+from .data import ArcCut, LinearCut
 
-def helical_boring(cutter_diameter : float, pos : Tuple[float,float,float],depth : float, hole_diameter : float, hollow : bool = False, arc_feed : float = 0, plunge_rate : float = 0,arc_speed : float = 0, plunge_speed : float = 0):
-    pos = np.array(pos)
-    offset = X*(hole_diameter - cutter_diameter)/2
-    start = pos - offset
-    stop = start - Z*abs(depth)
-    turns = np.ceil(depth / plunge_rate)
-    #TODO add support for hollowing large holes
-    g = nx.Graph()
-    g.add_node(ArcCut(start=tuple(start),stop=tuple(stop),offset=tuple(offset),turns=turns))
-    return g
+X, Y, Z = np.identity(3)
+
+# plunges into the piece at the center of the hole
+# if tool_diameter < hole_diameter, uses an arc cut to reach the specified hole diameter
+
+
+def center_counter_bore_hole(pos: Tuple[float, float, float], depth: float, hole_diameter: float, tool_diameter: float, feed: float = 0, speed: float = 0):
+    assert tool_diameter <= hole_diameter <= tool_diameter*2
+    start = np.array(pos)
+    stop = start - Z*np.abs(depth)
+    yield LinearCut(tuple(start), tuple(stop), 50, 50)
+    if hole_diameter > tool_diameter:
+        offset = X*(hole_diameter - tool_diameter)/2
+        knot = stop - offset
+        yield LinearCut(tuple(stop), tuple(knot), feed=feed, speed=speed)
+        yield ArcCut(tuple(knot), tuple(knot), offset=tuple(offset), feed=feed, speed=speed)
