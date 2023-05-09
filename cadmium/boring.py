@@ -1,9 +1,11 @@
 from itertools import chain, zip_longest
 from typing import Tuple
 
+from more_itertools import windowed
 import numpy as np
 
 from .data import ArcCut, LinearCut, Tool
+from .util import slices
 
 X, Y, Z = np.identity(3)
 
@@ -33,5 +35,12 @@ def concentric_bore_routine(
         arc_feed: float = 0,
         plunge_feed: float = 0,
         speed: float = 0):
-    
-    pass
+    pos = np.array(pos)
+    for (z,zz) in windowed(slices(pos[2],depth,step_down),2):
+        up = pos - Z*z
+        center = pos - Z*zz
+        yield LinearCut(tuple(up),tuple(center),plunge_feed,speed)
+        for (r,rr) in windowed(slices(0,diameter/2,step_over*tool.end_diameter),2):
+            knot = center - X*rr
+            yield LinearCut(tuple(center-X*r),tuple(knot))
+            yield ArcCut(tuple(knot),tuple(knot),tuple(X*rr),feed=arc_feed,speed=speed)
