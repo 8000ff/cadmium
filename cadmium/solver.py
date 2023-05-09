@@ -1,8 +1,8 @@
-from .data import Job,Operation,LinearCut,ArcCut
+from .data import Job,Operation,LinearCut,ArcCut,Machine
 from typing import List,Union
-from pygcode import *
+from pygcode import GCodeAbsoluteDistanceMode, GCodeCancelToolLengthOffset, GCodeCutterRadiusCompOff, GCodeEndProgram, GCodeLinearMove, GCodeMoveInMachineCoords, GCodePauseProgram, GCodeRapidMove, GCodeStopSpindle
 import networkx as nx
-from more_itertools import *
+from more_itertools import windowed  
 import numpy as np
 
 # the solver turns a Job (IR) into gcode
