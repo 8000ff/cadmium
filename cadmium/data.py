@@ -77,7 +77,8 @@ class ArcCut():
     def gcode(self, include_start=False, include_stop=True, include_feed=False, include_speed=False, include_spindle_start=False):
         ax, ay, az = self.start
         bx, by, bz = self.stop
-        ox, oy, oz = self.offset
+        ox, oy, oz = [ None if o == 0 else o for o in self.offset]
+        p = None if self.turns == 1 else self.turns
         if include_speed:
             yield GCodeSpindleSpeed(self.speed)
         if include_spindle_start:
@@ -87,7 +88,7 @@ class ArcCut():
         if include_start:
             yield GCodeLinearMove(X=ax, Y=ay, Z=az)
         if include_stop:
-            yield (GCodeArcMoveCW if self.clockwise else GCodeArcMoveCCW)(X=bx, Y=by, Z=bz, I=ox, J=oy, K=oz,P=self.turns)
+            yield (GCodeArcMoveCW if self.clockwise else GCodeArcMoveCCW)(**{ k:v for k,v in {'X':bx, 'Y':by, 'Z':bz, 'I':ox, 'J':oy, 'K':oz,'P':p}.items() if v is not None})
 
 
 @dataclass(unsafe_hash=True)
