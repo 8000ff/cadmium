@@ -18,7 +18,13 @@ def rect(a: Tuple[float, float], b: Tuple[float, float],complete : bool):
         points.append(a)
     return points
 
-def slices(a : float, b : float, per_step : float):
+def slices(a : float, b : float, per_step : float, eps : float = .001):
+    assert per_step > 0
     norm = np.linalg.norm(b-a)
-    n, last = np.divmod(norm, per_step)
-    return [*np.linspace(a, b-last,int(n+1)),b]
+    sign = np.sign(b-a)
+    n, last = divmod(norm,per_step)
+    if last < eps:
+        yield from np.linspace(a,b,abs(int(n)),endpoint=False)
+    else:
+        yield from np.linspace(a,b-last*sign,abs(int(n)+1),endpoint=True)
+    yield b
