@@ -42,5 +42,5 @@ def concentric_bore_routine(
         yield LinearCut(tuple(up),tuple(center),plunge_feed,speed)
         for (r,rr) in windowed(slices(0,diameter/2,step_over*tool.end_diameter),2):
             knot = center - X*rr
-            yield LinearCut(tuple(center-X*r),tuple(knot))
+            yield LinearCut(tuple(center-X*r),tuple(knot),feed=arc_feed,speed=speed)
             yield ArcCut(tuple(knot),tuple(knot),tuple(X*rr),feed=arc_feed,speed=speed)
