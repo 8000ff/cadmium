@@ -19,12 +19,14 @@ class Setup:
 
 @dataclass(unsafe_hash=True)
 class Tool:
+    # TODO find better names
     end_diameter: float
     edge_height: float = 0  # zero is for cylindrical tools
     edge_radius: float = np.Infinity  # accepts negative values
     radius: float = field(init=False)
     shank_diameter: float = 0
-
+    max_cutting_depth = np.Infinity # how deep the tool can cut, by default assumes infinity
+    
     def __post_init__(self):
         self.radius = self.end_diameter/2.
         if self.shank_diameter == 0:
