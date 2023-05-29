@@ -7,16 +7,22 @@ import numpy as np
 
 # the solver turns a Job (IR) into gcode
 # use safe height policy, will Z hop if cuts are not contiguous
-# will insert a pause between every operation
 # work in machine coordinates
 def safe_height_solver(job : Job, machine: Machine, safe_height: float = 0,dwell: float = 3, eps : float = .01,pause_every_op : bool = False):
     order_of_operations : List[Operation] = list(nx.dfs_preorder_nodes(job.operations))
-    order_of_operations = order_of_operations[1:]
+    # order_of_operations = order_of_operations[1:]
     yield GCodeAbsoluteDistanceMode()
     yield GCodeCutterRadiusCompOff()
     yield GCodeMoveInMachineCoords()
     yield GCodeCancelToolLengthOffset()
-    for op in order_of_operations:
+    for (pre,op) in windowed(order_of_operations,2):
+        if pre == 'root' or pre.tool != op.tool:
+            yield from machine.useTool(op.tool)
+        if pause_every_op:
+            yield GCodeRapidMove(X=0,Y=0)
+            yield GCodeStopSpindle()
+            yield GCodePauseProgram()
+
         cuts : List[Union[LinearCut,ArcCut]] = list(nx.dfs_preorder_nodes(op.cuts))
         first_cut,*rest = cuts
         yield GCodeRapidMove(Z=safe_height)
@@ -31,8 +37,4 @@ def safe_height_solver(job : Job, machine: Machine, safe_height: float = 0,dwell
                     yield GCodeRapidMove(X=now.start[0],Y=now.start[1])
                 yield from now.gcode(jump,True,pre.feed != now.feed, pre.speed != now.speed,False)
         yield GCodeRapidMove(Z=safe_height)
-        if pause_every_op:
-            yield GCodeRapidMove(X=0,Y=0)
-            yield GCodeStopSpindle()
-            yield GCodePauseProgram()
     yield GCodeEndProgram()
