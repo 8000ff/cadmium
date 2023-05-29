@@ -23,20 +23,22 @@ def rect(a: Tuple[float, float], b: Tuple[float, float], complete: bool):
 # If a corner radius is zero, will return TWO POINTS for this corner
 # The first 2 points are always the segment on the line (ax,ay,bx,ay)
 # you can also provide unexpected value and see what happens
+
+
 def chanfered_rect(a: Tuple[float, float], b: Tuple[float, float], complete: bool, c1: float = 0, c2: float = 0, c3: float = 0, c4: float = 0):
     from numpy import sign
     ax, ay = map(float, a)
     bx, by = map(float, b)
     sx, sy = sign(bx-ax), sign(by-ay)
     points = [
-        (ax + sx * c1, ay),
         (bx - sx * c2, ay),
-        (bx, ay + sy * c2),
-        (bx, by - sy * c3),
-        (bx - sx * c3, by),
-        (ax + sx * c4, by),
+        (ax + sx * c1, ay),
+        (ax, ay + sy * c1),
         (ax, by - sy * c4),
-        (ax, ay + sy * c1)
+        (ax + sx * c4, by),
+        (bx - sx * c3, by),
+        (bx, by - sy * c3),
+        (bx, ay + sy * c2),
     ]
     if complete:
         points.append(points[0])
