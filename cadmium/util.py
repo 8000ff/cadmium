@@ -24,7 +24,19 @@ def rect(a: Tuple[float, float], b: Tuple[float, float], complete: bool):
 # The first 2 points are always the segment on the line (ax,ay,bx,ay)
 # you can also provide unexpected value and see what happens
 
-
+def rect(a: Tuple[float, float], b: Tuple[float, float], complete: bool):
+    from numpy import sign
+    ax, ay = map(float, a)
+    bx, by = map(float, b)
+    points = [
+        (ax,ay),
+        (bx,ay),
+        (bx,by),
+        (ax,by),
+    ]
+    if complete:
+        points.append(points[0])
+    return points
 def chanfered_rect(a: Tuple[float, float], b: Tuple[float, float], complete: bool, c1: float = 0, c2: float = 0, c3: float = 0, c4: float = 0):
     from numpy import sign
     ax, ay = map(float, a)

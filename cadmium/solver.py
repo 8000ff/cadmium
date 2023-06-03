@@ -10,7 +10,6 @@ import numpy as np
 # work in machine coordinates
 def safe_height_solver(job : Job, machine: Machine, safe_height: float = 0,dwell: float = 3, eps : float = .01,pause_every_op : bool = False):
     order_of_operations : List[Operation] = list(nx.dfs_preorder_nodes(job.operations))
-    # order_of_operations = order_of_operations[1:]
     yield GCodeAbsoluteDistanceMode()
     yield GCodeCutterRadiusCompOff()
     yield GCodeMoveInMachineCoords()

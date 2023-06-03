@@ -50,6 +50,7 @@ class LinearCut:
     spindle_cw: bool = True
 
     def gcode(self, include_start=False, include_stop=True, include_feed=False, include_speed=False, include_spindle_start=False):
+        assert self.feed > 0 and self.speed > 0 # Don't want to generate GCode with 0 feedrate of 0 spindle speed
         ax, ay, az = self.start
         bx, by, bz = self.stop
         if include_speed:
@@ -77,6 +78,7 @@ class ArcCut():
     turns : int = 1 # P param
 
     def gcode(self, include_start=False, include_stop=True, include_feed=False, include_speed=False, include_spindle_start=False):
+        assert self.feed > 0 and self.speed > 0 # Don't want to generate GCode with 0 feedrate of 0 spindle speed
         ax, ay, az = self.start
         bx, by, bz = self.stop
         ox, oy, oz = [ None if o == 0 else o for o in self.offset]
