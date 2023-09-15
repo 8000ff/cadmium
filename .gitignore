@@ -1,0 +1,4 @@
+build/*
+cadmium.egg-info/*
+donotcommit.py
+cadmium/__pycache__/*
