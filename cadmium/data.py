@@ -4,18 +4,15 @@ import networkx as nx
 import numpy as np
 from pygcode import GCodeSpindleSpeed, GCode, GCodeFeedRate, GCodeLinearMove, GCodeStartSpindleCW, GCodeStartSpindleCCW, GCodeArcMoveCW, GCodeArcMoveCCW
 
-
 @dataclass(unsafe_hash=True)
 class WorkHolding:
     pass  # TODO define the work holding engine
-
 
 @dataclass(unsafe_hash=True)
 class Setup:
     translation: Tuple[float, float, float] = (0, 0, 0)
     rotation: Tuple[float, float, float] = (0, 0, 0)
     workHolding: WorkHolding = None
-
 
 @dataclass(unsafe_hash=True)
 class Tool:
@@ -32,14 +29,12 @@ class Tool:
         if self.shank_diameter == 0:
             self.shank_diameter = self.end_diameter
 
-
 @dataclass(unsafe_hash=True)
 class Operation:
     # Cuts are stored in a tree, branches starting from a node can always be reordered, the tree should be read using Depth Search First pre-order
     # Edges can be labeled with list of positions (Tuple[float,float,float]) to specify the path to take between two cuts, if no label is present the solver will provide a default path
     cuts: nx.Graph
     tool: Tool
-
 
 @dataclass(unsafe_hash=True)
 class LinearCut:
@@ -64,9 +59,8 @@ class LinearCut:
         if include_stop:
             yield GCodeLinearMove(X=bx, Y=by, Z=bz)
 
-
 @dataclass(unsafe_hash=True)
-class ArcCut():
+class ArcCut:
     start: Tuple[float, float, float]
     stop: Tuple[float, float, float]  # XYZ params
     offset: Tuple[float, float, float]  # IJK params
@@ -94,12 +88,10 @@ class ArcCut():
         if include_stop:
             yield (GCodeArcMoveCW if self.clockwise else GCodeArcMoveCCW)(**{ k:v for k,v in {'X':bx, 'Y':by, 'Z':bz, 'I':ox, 'J':oy, 'K':oz,'P':p}.items() if v is not None})
 
-
 @dataclass(unsafe_hash=True)
 class Job:
     # Operations should be stored in a path graph where nodes are operations and edges are setups
     operations: nx.DiGraph
-
 
 @dataclass(unsafe_hash=True)
 class Machine:
@@ -108,7 +100,6 @@ class Machine:
     mapRPM: Callable[[float], float] = lambda x: x
     # ordered list of the tools available in the ATC, 0 length list means no ATC
     inventory: List[Tool] = field(default_factory=list)
-
 
 @dataclass(unsafe_hash=True)
 class Stock:
