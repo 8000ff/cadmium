@@ -8,6 +8,8 @@ setup(
     install_requires=[
         'numpy',
         'networkx',
+        'pandas',
+        'scipy',
         'pygcode',
         'more_itertools'
     ],

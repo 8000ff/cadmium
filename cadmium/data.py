@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Tuple, Callable, List
+from typing import Tuple, Callable, List, Union
 import networkx as nx
 import numpy as np
 from pygcode import GCodeSpindleSpeed, GCode, GCodeFeedRate, GCodeLinearMove, GCodeStartSpindleCW, GCodeStartSpindleCCW, GCodeArcMoveCW, GCodeArcMoveCCW
@@ -15,13 +15,13 @@ class Setup:
     workHolding: WorkHolding = None
 
 @dataclass(unsafe_hash=True)
-class Tool:
+class CuttingTool:
     # TODO find better names
+    shank_diameter: float
     end_diameter: float
     edge_height: float = 0  # zero is for cylindrical tools
     edge_radius: float = np.Infinity  # accepts negative values
     radius: float = field(init=False)
-    shank_diameter: float = 0
     max_cutting_depth = np.Infinity # how deep the tool can cut, by default assumes infinity
     
     def __post_init__(self):
@@ -30,11 +30,10 @@ class Tool:
             self.shank_diameter = self.end_diameter
 
 @dataclass(unsafe_hash=True)
-class Operation:
-    # Cuts are stored in a tree, branches starting from a node can always be reordered, the tree should be read using Depth Search First pre-order
-    # Edges can be labeled with list of positions (Tuple[float,float,float]) to specify the path to take between two cuts, if no label is present the solver will provide a default path
-    cuts: nx.Graph
-    tool: Tool
+class ProbingTool:
+    shank_diameter: float # TODO define the probing tool
+
+Tool = CuttingTool | ProbingTool
 
 @dataclass(unsafe_hash=True)
 class LinearCut:
@@ -66,7 +65,7 @@ class ArcCut:
     offset: Tuple[float, float, float]  # IJK params
 
     clockwise: bool = True  # switch between G2 and G3
-    feed: float = 0  # mm/s # TODO look into the use of rev/mm
+    feed: float = 0
     speed: float = 0  # rpm
     spindle_cw: bool = True
     turns : int = 1 # P param
@@ -89,6 +88,37 @@ class ArcCut:
             yield (GCodeArcMoveCW if self.clockwise else GCodeArcMoveCCW)(**{ k:v for k,v in {'X':bx, 'Y':by, 'Z':bz, 'I':ox, 'J':oy, 'K':oz,'P':p}.items() if v is not None})
 
 @dataclass(unsafe_hash=True)
+class NoneCut:
+    # The NoneCut only exists at the top of the cut tree
+    pass
+
+Cut = LinearCut | ArcCut | NoneCut
+
+@dataclass(unsafe_hash=True)
+class LinearProbe:
+    feed: float = 0 # TODO define linear probing moves
+@dataclass(unsafe_hash=True)
+class NoneProbe:
+    pass # The NoneProbe only exists at the top of the probe tree
+
+Probe = LinearProbe | NoneProbe
+Move = Cut | Probe
+
+@dataclass(unsafe_hash=True)
+class CuttingOperation:
+    # Cuts is a tree, root must be empty
+    cuts: nx.DiGraph
+    tool: CuttingTool
+
+@dataclass(unsafe_hash=True)
+class ProbingOperation:
+    # define probing moves
+    prob: nx.DiGraph
+    tool: ProbingTool
+
+Operation = CuttingOperation | ProbingOperation
+
+@dataclass(unsafe_hash=True)
 class Job:
     # Operations should be stored in a path graph where nodes are operations and edges are setups
     operations: nx.DiGraph
@@ -97,6 +127,7 @@ class Job:
 class Machine:
     # Machine is used by the AR to GCode solver
     useTool: Callable[[Tool], List[GCode]]
+    park: Callable[[], List[GCode]]
     mapRPM: Callable[[float], float] = lambda x: x
     # ordered list of the tools available in the ATC, 0 length list means no ATC
     inventory: List[Tool] = field(default_factory=list)
