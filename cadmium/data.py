@@ -116,7 +116,12 @@ class ProbingOperation:
     prob: nx.DiGraph
     tool: ProbingTool
 
-Operation = CuttingOperation | ProbingOperation
+@dataclass(unsafe_hash=True)
+class NoneOperation:
+    # The NoneOperation only exists at the top of the operation tree
+    pass
+
+Operation = CuttingOperation | ProbingOperation | NoneOperation
 
 @dataclass(unsafe_hash=True)
 class Job:
