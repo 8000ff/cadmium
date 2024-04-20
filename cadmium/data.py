@@ -43,6 +43,10 @@ class LinearCut:
     speed: float = 0  # rpm
     spindle_cw: bool = True
 
+    def __post_init__(self):
+        self.start = tuple(self.start)
+        self.stop = tuple(self.stop)
+
     def gcode(self, include_start=False, include_stop=True, include_feed=False, include_speed=False, include_spindle_start=False):
         assert self.feed > 0 and self.speed > 0 # Don't want to generate GCode with 0 feedrate of 0 spindle speed
         ax, ay, az = self.start
@@ -69,6 +73,11 @@ class ArcCut:
     speed: float = 0  # rpm
     spindle_cw: bool = True
     turns : int = 1 # P param
+
+    def __post_init__(self):
+        self.start = tuple(self.start)
+        self.stop = tuple(self.stop)
+        self.offset = tuple(self.offset)
 
     def gcode(self, include_start=False, include_stop=True, include_feed=False, include_speed=False, include_spindle_start=False):
         assert self.feed > 0 and self.speed > 0 # Don't want to generate GCode with 0 feedrate of 0 spindle speed
